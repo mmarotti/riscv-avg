@@ -1,23 +1,42 @@
 .data
-array:  .float 1.2, 3.4, 5.6, 7.8, 10.2 # Números do array
-size:   .word 5 # Tamanho do array
+sizeMessage:  .asciz "\nQual o tamanho do array? "
+elementsMessage:  .asciz "Insira um elemento do array: "
 
 .text
-_start:
-    la t0, array # Endereço do primeiro elemento do array
-    lw t1, size # Tamanho do array
-    li t3, 0 # Índice
-    
-    fmv.w.x f0, zero # Acumulador
+li t0, 0 # Índice
+fmv.w.x ft0, zero # Acumulador
 
+li a7, 4 # (4 = print string)
+la a0, sizeMessage
+ecall # call print string
+
+li a7, 5 # (5 = read int)
+ecall # call read int
+    
+mv t1, a0 # Armazenando tamanho do array
+  
 loop:
-    beq t3, t1, end # Se contador == |array|, retorna
-    flw f1, 0(t0) # Carrega o valor flutuante atual de t0 para f1
-    fadd.s f0, f0, f1 # Adiciona o valor ao acumulador f0
-    addi t0, t0, 4 # Move para o próximo elemento do array
-    addi t3, t3, 1 # Incrementa o contador de índices
-    j loop         # Volta para o loop
+    beq t0, t1, end # Se contador == |array|, finaliza loop
+ 
+    li a7, 4 # (4 = print string)
+    la a0, elementsMessage
+    ecall
+
+    li a7, 6 # (6 = read float)
+    ecall
+    
+    fadd.s ft0, ft0, fa0 # Adiciona float lido ao acumulador
+    addi t0, t0, 1 # Incrementa índice
+
+    j loop # Volta para o loop
 
 end:
-    fcvt.s.w  f1, t1 # Converte inteiro para float, necessário para divisão
-    fdiv.s  f0, f0, f1 # Divide a soma pelo número de elementos
+    fcvt.s.w  ft1, t1 # Converte inteiro para float, necessário para divisão
+    fdiv.s  ft0, ft0, ft1 # Divide a soma pelo número de elementos
+    
+    li a7, 2 # (2 = print float)
+    fmv.s fa0, ft0
+    ecall 
+   
+    li a7, 10 # Encerra o programa com código 0 (10 = exit)
+    ecall
